@@ -3,6 +3,8 @@ from django.utils import timezone
 from blog.models import Post, Category
 from django.core.paginator import Paginator
 
+from .forms import PostsForm
+
 
 def index(request):
 
@@ -57,3 +59,11 @@ def category_posts(request, category_slug):
     page_obj = paginator.get_page(page_number)
     context = {'category': category, 'page_obj': page_obj}
     return render(request, template, context)
+
+
+def posts_create(request):
+    form = PostsForm(request.POST or None)
+    context = {'form': form}
+    if form.is_valid():
+        form.save()
+    return render(request, 'blog/create.html', context)
