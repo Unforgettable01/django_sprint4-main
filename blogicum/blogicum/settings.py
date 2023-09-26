@@ -26,7 +26,10 @@ SECRET_KEY = ('django-insecure-1z^@47dv0xm^3*zse!)v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost'
+]
 
 
 # Application definition
@@ -141,3 +144,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+
+
+CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
+
+MEDIA_ROOT = BASE_DIR / 'media'

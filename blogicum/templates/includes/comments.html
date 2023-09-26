@@ -1,4 +1,4 @@
-{% if user.is_authenticated %}
+{% comment %} {% if user.is_authenticated %}
   {% load django_bootstrap5 %}
   <h5 class="mb-4">Оставить комментарий</h5>
   <form method="post" action="{% url 'blog:add_comment' post.id %}">
@@ -29,4 +29,4 @@
       </a>
     {% endif %}
   </div>
-{% endfor %}
+{% endfor %} {% endcomment %}
