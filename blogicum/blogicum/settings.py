@@ -149,3 +149,5 @@ EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
 
 MEDIA_ROOT = BASE_DIR / 'media'
+
+LOGIN_REDIRECT_URL = 'blog:index'
