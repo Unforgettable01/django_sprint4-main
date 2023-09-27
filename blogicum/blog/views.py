@@ -80,7 +80,7 @@ def profile(request, username):
     return render(request, template_name, context)
 
 
-def profile_edit(request, username):
+def edit_profile(request, username):
     isinstance = get_object_or_404(User, username=username)
     form = EditProfileForm(request.POST or None, instance=isinstance)
     context = {'form': form}
