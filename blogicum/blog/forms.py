@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Post
+from .models import Post, User
 
 
 class PostsForm(forms.ModelForm):
@@ -11,3 +11,10 @@ class PostsForm(forms.ModelForm):
         widgets = {
             'pub_date': forms.DateTimeInput(attrs={'type': 'datetime-local'})
             }
+
+
+class EditProfileForm(forms.ModelForm):
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'username', 'email')
