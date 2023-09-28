@@ -119,3 +119,14 @@ def add_comment(request, id):
         comment.post = post
         comment.save()
     return redirect('blog:post_detail', id=id)
+
+
+def edit_comment(request, post_id, comment_id):
+    instance = get_object_or_404(Comment, id=comment_id, post_id=post_id)
+    form = CommentsForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        form.save()
+        return redirect('blog:post_detail', post_id)
+    context = {'form': form, 'comment': instance}
+    template = 'blog/comment.html'
+    return render(request, template, context)
