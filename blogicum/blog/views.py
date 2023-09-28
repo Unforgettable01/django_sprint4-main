@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 from blog.models import Post, Category
 from django.core.paginator import Paginator
@@ -66,7 +66,9 @@ def posts_create(request):
     form = PostsForm(request.POST or None)
     context = {'form': form}
     if form.is_valid():
-        form.save()
+        instance = form.save(commit=False)
+        instance.author = request.user
+        instance.save()
     return render(request, 'blog/create.html', context)
 
 
@@ -81,10 +83,23 @@ def profile(request, username):
 
 
 def edit_profile(request, username):
-    isinstance = get_object_or_404(User, username=username)
-    form = EditProfileForm(request.POST or None, instance=isinstance)
+    instance = get_object_or_404(User, username=username)
+    form = EditProfileForm(request.POST or None, instance=instance)
     context = {'form': form}
     if form.is_valid():
         form.save()
     template = 'blog/user.html'
     return render(request, template, context)
+
+
+def edit_post(request, id):
+    instance = get_object_or_404(Post, id=id)
+    if (instance.author != request.user):
+        return redirect('blog:post_detail', id=id)
+    form = PostsForm(request.POST or None, instance=instance)
+    context = {'form': form}
+    if form.is_valid():
+        form.save()
+        return redirect('blog:post_detail', id=id)
+    templates = 'blog/create.html'
+    return render(request, templates, context)

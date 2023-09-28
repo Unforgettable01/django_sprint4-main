@@ -19,4 +19,9 @@ urlpatterns = [
         views.edit_profile,
         name='edit_profile'
     ),
+    path(
+        'posts/<int:id>/edit/',
+        views.edit_post,
+        name='edit_post'
+    ),
 ]
