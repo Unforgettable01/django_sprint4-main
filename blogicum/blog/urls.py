@@ -24,4 +24,9 @@ urlpatterns = [
         views.edit_post,
         name='edit_post'
     ),
+    path(
+        'posts/<int:id>/comment/',
+        views.add_comment,
+        name='add_comment'
+    ),
 ]

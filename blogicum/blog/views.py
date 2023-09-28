@@ -1,10 +1,10 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
-from blog.models import Post, Category
+from blog.models import Post, Category, Comment
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 
-from .forms import PostsForm, EditProfileForm
+from .forms import PostsForm, EditProfileForm, CommentsForm
 
 
 def index(request):
@@ -37,8 +37,13 @@ def post_detail(request, id):
         category__is_published=True,
         pub_date__lte=timezone.now()
     )
-
-    context = {'post': post}
+    comments = Comment.objects.select_related(
+        'author'
+    ).filter(
+        post=post,
+    )
+    form = CommentsForm()
+    context = {'post': post, 'form': form, 'comments': comments}
     return render(request, template, context)
 
 
@@ -103,3 +108,14 @@ def edit_post(request, id):
         return redirect('blog:post_detail', id=id)
     templates = 'blog/create.html'
     return render(request, templates, context)
+
+
+def add_comment(request, id):
+    post = get_object_or_404(Post, id=id)
+    form = CommentsForm(request.POST)
+    if form.is_valid:
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect('blog:post_detail', id=id)
