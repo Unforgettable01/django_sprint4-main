@@ -130,3 +130,14 @@ def edit_comment(request, post_id, comment_id):
     context = {'form': form, 'comment': instance}
     template = 'blog/comment.html'
     return render(request, template, context)
+
+
+def delete_post(request, post_id):
+    instance = get_object_or_404(Post, id=post_id)
+    form = PostsForm(request.POST or None, instance=instance)
+    if request.method == 'POST':
+        instance.delete()
+        return redirect('blog:index')
+    context = {'form': form}
+    template = 'blog/create.html'
+    return render(request, template, context)
