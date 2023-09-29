@@ -1,9 +1,10 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
-from blog.models import Post, Category, Comment
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 
+from blog.models import Post, Category, Comment
 from .forms import PostsForm, EditProfileForm, CommentsForm
 
 
@@ -67,13 +68,15 @@ def category_posts(request, category_slug):
     return render(request, template, context)
 
 
+@login_required
 def posts_create(request):
-    form = PostsForm(request.POST or None)
+    form = PostsForm(request.POST or None, files=request.FILES or None)
     context = {'form': form}
     if form.is_valid():
         instance = form.save(commit=False)
         instance.author = request.user
         instance.save()
+        return redirect('blog:profile', username=request.user.username)
     return render(request, 'blog/create.html', context)
 
 
@@ -82,11 +85,15 @@ def profile(request, username):
     post_list = Post.objects.select_related().filter(
         author=profile
     )
-    context = {'profile': profile, 'page_obj': post_list}
+    paginator = Paginator(post_list, 11)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context = {'profile': profile, 'page_obj': page_obj}
     template_name = 'blog/profile.html'
     return render(request, template_name, context)
 
 
+@login_required
 def edit_profile(request, username):
     instance = get_object_or_404(User, username=username)
     form = EditProfileForm(request.POST or None, instance=instance)
@@ -97,11 +104,16 @@ def edit_profile(request, username):
     return render(request, template, context)
 
 
+@login_required
 def edit_post(request, id):
     instance = get_object_or_404(Post, id=id)
     if (instance.author != request.user):
         return redirect('blog:post_detail', id=id)
-    form = PostsForm(request.POST or None, instance=instance)
+    form = PostsForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=instance
+    )
     context = {'form': form}
     if form.is_valid():
         form.save()
@@ -110,6 +122,7 @@ def edit_post(request, id):
     return render(request, templates, context)
 
 
+@login_required
 def add_comment(request, id):
     post = get_object_or_404(Post, id=id)
     form = CommentsForm(request.POST)
@@ -121,8 +134,13 @@ def add_comment(request, id):
     return redirect('blog:post_detail', id=id)
 
 
+@login_required
 def edit_comment(request, post_id, comment_id):
-    instance = get_object_or_404(Comment, id=comment_id, post_id=post_id)
+    instance = get_object_or_404(
+        Comment, id=comment_id,
+        post_id=post_id,
+        author=request.user
+        )
     form = CommentsForm(request.POST or None, instance=instance)
     if form.is_valid():
         form.save()
@@ -132,12 +150,24 @@ def edit_comment(request, post_id, comment_id):
     return render(request, template, context)
 
 
+@login_required
 def delete_post(request, post_id):
-    instance = get_object_or_404(Post, id=post_id)
+    instance = get_object_or_404(Post, id=post_id, author=request.user)
     form = PostsForm(request.POST or None, instance=instance)
     if request.method == 'POST':
         instance.delete()
         return redirect('blog:index')
     context = {'form': form}
     template = 'blog/create.html'
+    return render(request, template, context)
+
+
+@login_required
+def delete_comment(request, post_id, comment_id):
+    instance = get_object_or_404(Comment, id=comment_id, author=request.user)
+    if request.method == 'POST':
+        instance.delete()
+        return redirect('blog:post_detail', post_id)
+    context = {'comment': instance}
+    template = 'blog/comment.html'
     return render(request, template, context)

@@ -8,9 +8,10 @@ class PostsForm(forms.ModelForm):
     class Meta:
         model = Post
         exclude = ('author', 'is_published')
-        widgets = {
-            'pub_date': forms.DateTimeInput(attrs={'type': 'datetime-local'})
-            }
+        widgets = {'pub_date': forms.DateTimeInput(
+            format='%Y-%m-%d',
+            attrs={'type': 'date'}
+            )}
 
 
 class EditProfileForm(forms.ModelForm):
