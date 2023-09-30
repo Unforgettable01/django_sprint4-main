@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
+from django.db.models import Count
 
 from blog.models import Post, Category, Comment
 from .forms import PostsForm, EditProfileForm, CommentsForm
@@ -19,6 +20,8 @@ def index(request):
         pub_date__lte=timezone.now(),
     ).order_by(
         'id'
+    ).annotate(
+        comment_count=Count('comments')
     )
     paginator = Paginator(list_posts.order_by('-pub_date'), 10)
     page_number = request.GET.get('page')
@@ -33,11 +36,16 @@ def post_detail(request, id):
     template = 'blog/detail.html'
     post = get_object_or_404(
         Post,
-        pk=id,
-        is_published=True,
-        category__is_published=True,
-        pub_date__lte=timezone.now()
+        id=id,
     )
+    if (post.author != request.user):
+        post = get_object_or_404(
+            Post,
+            pk=id,
+            is_published=True,
+            category__is_published=True,
+            pub_date__lte=timezone.now()
+        )
     comments = Comment.objects.select_related(
         'author'
     ).filter(
@@ -84,6 +92,8 @@ def profile(request, username):
     profile = get_object_or_404(User, username=username)
     post_list = Post.objects.select_related().filter(
         author=profile
+    ).annotate(
+        comment_count=Count('comments')
     )
     paginator = Paginator(post_list.order_by('-pub_date'), 10)
     page_number = request.GET.get('page')
