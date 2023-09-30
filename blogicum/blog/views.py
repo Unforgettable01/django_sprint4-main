@@ -20,7 +20,7 @@ def index(request):
     ).order_by(
         'id'
     )
-    paginator = Paginator(list_posts, 11)
+    paginator = Paginator(list_posts.order_by('-pub_date'), 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -61,7 +61,7 @@ def category_posts(request, category_slug):
     ).order_by(
         'id'
     )
-    paginator = Paginator(post_list, 11)
+    paginator = Paginator(post_list.order_by('-pub_date'), 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'category': category, 'page_obj': page_obj}
@@ -85,7 +85,7 @@ def profile(request, username):
     post_list = Post.objects.select_related().filter(
         author=profile
     )
-    paginator = Paginator(post_list, 11)
+    paginator = Paginator(post_list.order_by('-pub_date'), 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context = {'profile': profile, 'page_obj': page_obj}
