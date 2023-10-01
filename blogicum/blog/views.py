@@ -7,6 +7,7 @@ from django.db.models import Count
 
 from blog.models import Post, Category, Comment
 from .forms import PostsForm, EditProfileForm, CommentsForm
+from .redirects import redirect_with_id, redirect_with_username
 
 
 def index(request):
@@ -82,7 +83,7 @@ def posts_create(request):
         instance = form.save(commit=False)
         instance.author = request.user
         instance.save()
-        return redirect('blog:profile', username=request.user.username)
+        return redirect_with_username(request.user.username)
     return render(request, 'blog/create.html', context)
 
 
@@ -116,7 +117,7 @@ def edit_profile(request, username):
 def edit_post(request, id):
     instance = get_object_or_404(Post, id=id)
     if (instance.author != request.user):
-        return redirect('blog:post_detail', id=id)
+        return redirect_with_id(id)
     form = PostsForm(
         request.POST or None,
         files=request.FILES or None,
@@ -125,7 +126,7 @@ def edit_post(request, id):
     context = {'form': form}
     if form.is_valid():
         form.save()
-        return redirect('blog:post_detail', id=id)
+        return redirect_with_id(id)
     templates = 'blog/create.html'
     return render(request, templates, context)
 
@@ -139,7 +140,7 @@ def add_comment(request, id):
         comment.author = request.user
         comment.post = post
         comment.save()
-        return redirect('blog:post_detail', id=id)
+        return redirect_with_id(id)
     template = 'blog/comment.html'
     context = {'form': form}
     return render(request, template, context)
@@ -156,7 +157,7 @@ def edit_comment(request, post_id, comment_id):
     form = CommentsForm(request.POST or None, instance=instance)
     if form.is_valid():
         form.save()
-        return redirect('blog:post_detail', post_id)
+        return redirect_with_id(post_id)
     context = {'form': form, 'comment': instance}
     template = 'blog/comment.html'
     return render(request, template, context)
@@ -179,7 +180,7 @@ def delete_comment(request, post_id, comment_id):
     instance = get_object_or_404(Comment, id=comment_id, author=request.user)
     if request.method == 'POST':
         instance.delete()
-        return redirect('blog:post_detail', post_id)
+        return redirect_with_id(post_id)
     context = {'comment': instance}
     template = 'blog/comment.html'
     return render(request, template, context)
