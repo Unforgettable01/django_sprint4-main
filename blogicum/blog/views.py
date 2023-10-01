@@ -1,13 +1,13 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from django.db.models import Count
 
 from blog.models import Post, Category, Comment
 from .forms import PostsForm, EditProfileForm, CommentsForm
 from .redirects import redirect_with_id, redirect_with_username
+from .paginator_for_posts import paginator_for_posts
 
 
 def index(request):
@@ -23,9 +23,7 @@ def index(request):
     ).annotate(
         comment_count=Count('comments')
     )
-    paginator = Paginator(list_posts.order_by('-pub_date'), 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator_for_posts(list_posts, request.GET.get('page'))
     context = {'page_obj': page_obj}
     template = 'blog/index.html'
     return render(request, template, context)
@@ -68,9 +66,7 @@ def category_posts(request, category_slug):
     ).order_by(
         'id'
     )
-    paginator = Paginator(post_list.order_by('-pub_date'), 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator_for_posts(post_list, request.GET.get('page'))
     context = {'category': category, 'page_obj': page_obj}
     return render(request, template, context)
 
@@ -94,9 +90,7 @@ def profile(request, username):
     ).annotate(
         comment_count=Count('comments')
     )
-    paginator = Paginator(post_list.order_by('-pub_date'), 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginator_for_posts(post_list, request.GET.get('page'))
     context = {'profile': profile, 'page_obj': page_obj}
     template_name = 'blog/profile.html'
     return render(request, template_name, context)
