@@ -28,7 +28,7 @@ def index(request):
     context = {'page_obj': page_obj}
     template = 'blog/index.html'
     return render(request, template, context)
-""" Фильтр выносить в querySet """
+
 
 def post_detail(request, id):
     template = 'blog/detail.html'
