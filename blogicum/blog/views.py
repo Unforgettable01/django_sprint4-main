@@ -10,13 +10,12 @@ from .forms import PostsForm, EditProfileForm, CommentsForm
 
 
 def index(request):
-
     list_posts = Post.objects.select_related(
         'author',
         'location'
     ).filter(
         is_published=True,
-        category__is_published=True,
+        category__is_published=True, 
         pub_date__lte=timezone.now(),
     ).order_by(
         'id'
@@ -26,11 +25,10 @@ def index(request):
     paginator = Paginator(list_posts.order_by('-pub_date'), 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
     context = {'page_obj': page_obj}
     template = 'blog/index.html'
     return render(request, template, context)
-
+""" Фильтр выносить в querySet """
 
 def post_detail(request, id):
     template = 'blog/detail.html'
@@ -135,19 +133,23 @@ def edit_post(request, id):
 @login_required
 def add_comment(request, id):
     post = get_object_or_404(Post, id=id)
-    form = CommentsForm(request.POST)
+    form = CommentsForm(request.POST or None)
     if form.is_valid:
         comment = form.save(commit=False)
         comment.author = request.user
         comment.post = post
         comment.save()
-    return redirect('blog:post_detail', id=id)
+        return redirect('blog:post_detail', id=id)
+    template = 'blog/comment.html'
+    context = {'form': form}
+    return render(request, template, context)
 
 
 @login_required
 def edit_comment(request, post_id, comment_id):
     instance = get_object_or_404(
-        Comment, id=comment_id,
+        Comment,
+        id=comment_id,
         post_id=post_id,
         author=request.user
         )
