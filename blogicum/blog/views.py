@@ -5,7 +5,13 @@ from blog.models import Comment
 from .forms import PostsForm, EditProfileForm, CommentsForm
 from .redirects import redirect_with_id, redirect_with_username
 from .paginator_for_posts import paginator_for_posts
-from .get_objects import get_user, post_without_filters, post_with_filters, get_list_posts, get_category, get_comment
+from .get_objects import (get_user,
+                          post_without_filters,
+                          post_with_filters,
+                          get_list_posts,
+                          get_category,
+                          get_comment
+                          )
 
 
 def index(request):
