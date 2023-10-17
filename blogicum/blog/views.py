@@ -1,7 +1,10 @@
+from typing import Any
+from django.db.models.query import QuerySet
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views import generic
 
-from blog.models import Comment
+from blog.models import Comment, Post, Category
 from .forms import PostsForm, EditProfileForm, CommentsForm
 from .redirects import redirect_with_id, redirect_with_username
 from .paginator_for_posts import paginator_for_posts
@@ -14,12 +17,11 @@ from .get_objects import (get_user,
                           )
 
 
-def index(request):
-    list_posts = post_with_filters()
-    page_obj = paginator_for_posts(list_posts, request.GET.get('page'))
-    context = {'page_obj': page_obj}
-    template = 'blog/index.html'
-    return render(request, template, context)
+class IndexView(generic.ListView):
+    model = Post
+    template_name = 'blog/index.html'
+    ordering = 'id'
+    paginate_by = 10
 
 
 def post_detail(request, id):
@@ -37,16 +39,32 @@ def post_detail(request, id):
     return render(request, template, context)
 
 
-def category_posts(request, category_slug):
+""" def category_posts(request, category_slug):
     template = 'blog/category.html'
     category = get_category(category_slug)
     post_list = post_with_filters()
     page_obj = paginator_for_posts(post_list, request.GET.get('page'))
     context = {'category': category, 'page_obj': page_obj}
     return render(request, template, context)
+ """
 
 
-@login_required
+class CategoryPostListView(generic.ListView):
+    paginate_by = 10
+    template_name = 'blog/category.html'
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return Post.objects.filter(
+            category=get_category(self.kwargs['category_slug'])
+            )
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['category'] = get_category(self.kwargs['category_slug'])
+        return context
+
+
+""" @login_required
 def posts_create(request):
     form = PostsForm(request.POST or None, files=request.FILES or None)
     context = {'form': form}
@@ -55,7 +73,14 @@ def posts_create(request):
         instance.author = request.user
         instance.save()
         return redirect_with_username(request.user.username)
-    return render(request, 'blog/create.html', context)
+    return render(request, 'blog/create.html', context) """
+
+
+class PostCreateView(generic.CreateView):
+    model = Post
+    form_class = PostsForm
+    template_name = 'blog/create.html'
+    # success_url = 'blog:profile'
 
 
 def profile(request, username):
